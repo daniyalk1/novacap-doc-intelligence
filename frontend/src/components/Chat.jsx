@@ -29,7 +29,7 @@ function Chat() {
         content: res.data.answer,
         sources: res.data.sources || []
       }])
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: 'Sorry, something went wrong. Please try again.',
