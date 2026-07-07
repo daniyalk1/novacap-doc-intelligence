@@ -5,6 +5,7 @@ An enterprise RAG (Retrieval-Augmented Generation) platform built for NovaCap Ba
 > Built as part of an AI Engineer upskilling roadmap targeting senior AI Engineer and AI Solution Architect roles.
 
 ## Live Demo
+- **Frontend:** https://blue-cliff-03780ed0f.7.azurestaticapps.net
 - **API:** https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io
 - **Swagger Docs:** https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io/docs
 
@@ -167,7 +168,7 @@ docker run -p 8000:8000 --env-file .env novacap-backend
 - [x] Vector search with embeddings (semantic similarity)
 - [x] Docker containerization
 - [x] Deploy to Azure Container Apps
-- [ ] Deploy frontend to Azure Static Web Apps
+- [x] Deploy frontend to Azure Static Web Apps
 - [ ] Azure APIM gateway with rate limiting
 - [ ] Role-based access control per department
 - [ ] Azure Monitor query logging and audit trail
