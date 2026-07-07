@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-const API = 'http://localhost:8000'
+const API = 'https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io'
 
 function Chat() {
   const [messages, setMessages] = useState([

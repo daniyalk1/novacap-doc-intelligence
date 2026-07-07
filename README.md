@@ -4,6 +4,10 @@ An enterprise RAG (Retrieval-Augmented Generation) platform built for NovaCap Ba
 
 > Built as part of an AI Engineer upskilling roadmap targeting senior AI Engineer and AI Solution Architect roles.
 
+## Live Demo
+- **API:** https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io
+- **Swagger Docs:** https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io/docs
+
 ## Screenshots
 
 ### Chat Interface
@@ -16,18 +20,21 @@ An enterprise RAG (Retrieval-Augmented Generation) platform built for NovaCap Ba
 
 1. Employee uploads a PDF or TXT document
 2. Document is stored in **Azure Blob Storage**
-3. Document is chunked and indexed in **Azure AI Search**
+3. Document is chunked and indexed in **Azure AI Search** with vector embeddings
 4. Employee asks a question in the chat interface
-5. Relevant chunks are retrieved from Azure AI Search
-6. **OpenAI GPT-4o-mini** generates a grounded answer using only the retrieved context
-7. Answer is returned with source citations — no hallucination
+5. Question is converted to a vector using **OpenAI text-embedding-3-small**
+6. Semantically relevant chunks are retrieved from Azure AI Search
+7. **OpenAI GPT-4o-mini** generates a grounded answer using only the retrieved context
+8. Answer is returned with source citations — no hallucination
 
 ## Architecture
 
 ```
-PDF Upload → Azure Blob Storage → Chunking Pipeline → Azure AI Search Index
+PDF Upload → Azure Blob Storage → Chunking Pipeline → Embeddings (text-embedding-3-small)
                                                               ↓
-User Question → Azure AI Search (retrieval) → OpenAI GPT-4o-mini → Cited Answer
+                                              Azure AI Search Index (vector + keyword)
+                                                              ↓
+User Question → Embedding → Vector Search → OpenAI GPT-4o-mini → Cited Answer
 ```
 
 ## Tech Stack
@@ -36,11 +43,16 @@ User Question → Azure AI Search (retrieval) → OpenAI GPT-4o-mini → Cited A
 |---|---|
 | Frontend | React + Vite |
 | Backend | FastAPI (Python) |
+| Containerization | Docker |
+| Hosting | Azure Container Apps |
+| Container Registry | Azure Container Registry |
 | Document Storage | Azure Blob Storage |
-| Search & Retrieval | Azure AI Search |
+| Search & Retrieval | Azure AI Search (hybrid vector + keyword) |
+| Embeddings | OpenAI text-embedding-3-small |
 | LLM | OpenAI GPT-4o-mini |
-| Authentication | Azure DefaultAzureCredential (RBAC) |
+| Authentication | Azure Service Principal + RBAC |
 | Document Parsing | pypdf |
+| Observability | Azure Monitor + Log Analytics |
 
 ## Project Structure
 
@@ -48,14 +60,15 @@ User Question → Azure AI Search (retrieval) → OpenAI GPT-4o-mini → Cited A
 novacap-doc-intelligence/
 ├── backend/
 │   ├── main.py                  # FastAPI app entry point
+│   ├── Dockerfile               # Container definition
 │   ├── routers/
-│   │   ├── upload.py            # Document upload, chunking, indexing
+│   │   ├── upload.py            # Document upload, chunking, embedding, indexing
 │   │   ├── search.py            # Document search endpoint
 │   │   └── chat.py              # RAG chat endpoint
 │   ├── services/
 │   │   ├── blob_service.py      # Azure Blob Storage operations
-│   │   ├── search_service.py    # Azure AI Search operations
-│   │   └── llm_service.py       # OpenAI chat completion
+│   │   ├── search_service.py    # Azure AI Search vector + keyword operations
+│   │   └── llm_service.py       # OpenAI embeddings and chat completion
 │   └── requirements.txt
 ├── frontend/
 │   └── src/
@@ -70,7 +83,7 @@ novacap-doc-intelligence/
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/upload` | Upload and index a PDF or TXT document |
+| POST | `/api/upload` | Upload, chunk, embed and index a PDF or TXT document |
 | GET | `/api/search?q=query` | Search indexed documents |
 | POST | `/api/chat` | Ask a question, get a grounded answer with sources |
 
@@ -79,6 +92,7 @@ novacap-doc-intelligence/
 ### Prerequisites
 - Python 3.10+
 - Node.js 18+
+- Docker Desktop
 - Azure account with AI Search and Blob Storage resources
 - OpenAI API key
 - Azure CLI installed and logged in (`az login`)
@@ -120,26 +134,41 @@ npm run dev
 
 Frontend available at `http://localhost:5173`
 
+### Docker
+
+```bash
+cd backend
+docker build -t novacap-backend .
+docker run -p 8000:8000 --env-file .env novacap-backend
+```
+
 ## Azure Resources Required
 
 - **Azure Blob Storage** — document storage container
-- **Azure AI Search** — search index (free tier works)
+- **Azure AI Search** — vector + keyword search index
+- **Azure Container Registry** — private Docker image registry
+- **Azure Container Apps** — serverless container hosting
 - **RBAC Roles needed:**
   - `Storage Blob Data Contributor` on the storage account
   - `Search Index Data Contributor` on the AI Search service
 
 ## Key Technical Decisions
 
-- **DefaultAzureCredential** — no hardcoded keys, uses Azure CLI locally and managed identity in production
+- **Hybrid search** — combines vector similarity search with keyword search for better retrieval accuracy
+- **text-embedding-3-small** — OpenAI's efficient embedding model, 1536 dimensions, low cost
+- **Service Principal auth** — dedicated app identity with scoped RBAC roles, no hardcoded credentials
+- **DefaultAzureCredential** — uses Azure CLI locally, service principal in production, same code both environments
 - **Chunking with overlap** — documents split into 500-word chunks with 50-word overlap to preserve context across chunk boundaries
-- **Grounded responses** — LLM is instructed to answer only from retrieved context, refusing to answer if information isn't in the documents
-- **Source citations** — every answer includes the source document name so users can verify
+- **Grounded responses** — LLM instructed to answer only from retrieved context, refuses to answer if information isn't in the documents
+- **Source citations** — every answer includes the source document and chunk number so users can verify
 
 ## Roadmap
 
 - [x] Vector search with embeddings (semantic similarity)
+- [x] Docker containerization
+- [x] Deploy to Azure Container Apps
+- [ ] Deploy frontend to Azure Static Web Apps
 - [ ] Azure APIM gateway with rate limiting
 - [ ] Role-based access control per department
 - [ ] Azure Monitor query logging and audit trail
-- [ ] Deploy to Azure Container Apps + Static Web Apps
 - [ ] Support for Word documents (.docx)
