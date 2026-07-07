@@ -12,6 +12,7 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat")
 def chat(request: ChatRequest):
-    chunks = search_service.search(request.question)
+    query_vector = llm_service.get_embedding(request.question)
+    chunks = search_service.search(request.question, query_vector)
     response = llm_service.generate(request.question, chunks)
     return response

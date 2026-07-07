@@ -3,8 +3,16 @@ from azure.identity import DefaultAzureCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
-    SearchIndex, SimpleField, SearchableField, SearchFieldDataType
+    SearchIndex,
+    SimpleField,
+    SearchableField,
+    SearchFieldDataType,
+    VectorSearch,
+    HnswAlgorithmConfiguration,
+    VectorSearchProfile,
+    SearchField,
 )
+from azure.search.documents.models import VectorizedQuery
 import os
 
 load_dotenv()
@@ -33,17 +41,49 @@ class SearchService:
                 SearchableField(name="content", type=SearchFieldDataType.String),
                 SimpleField(name="filename", type=SearchFieldDataType.String, filterable=True),
                 SimpleField(name="chunk_id", type=SearchFieldDataType.Int32, filterable=True),
+                SearchField(
+                    name="content_vector",
+                    type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
+                    searchable=True,
+                    vector_search_dimensions=1536,
+                    vector_search_profile_name="my-vector-profile"
+                )
             ]
-            index = SearchIndex(name=self.index_name, fields=fields)
+
+            vector_search = VectorSearch(
+                algorithms=[HnswAlgorithmConfiguration(name="my-hnsw")],
+                profiles=[VectorSearchProfile(
+                    name="my-vector-profile",
+                    algorithm_configuration_name="my-hnsw"
+                )]
+            )
+
+            index = SearchIndex(
+                name=self.index_name,
+                fields=fields,
+                vector_search=vector_search
+            )
             self.index_client.create_index(index)
-        except Exception:
-            pass
+            print(f"Index '{self.index_name}' created with vector search")
+        except Exception as e:
+            print(f"Index already exists or error: {e}")
 
     def index_chunks(self, chunks: list[dict]):
         self.search_client.upload_documents(documents=chunks)
 
-    def search(self, query: str, top: int = 3):
-        results = self.search_client.search(search_text=query, top=top)
+    def search(self, query: str, query_vector: list[float], top: int = 3):
+        vector_query = VectorizedQuery(
+            vector=query_vector,
+            k_nearest_neighbors=top,
+            fields="content_vector"
+        )
+
+        results = self.search_client.search(
+            search_text=query,
+            vector_queries=[vector_query],
+            top=top
+        )
+
         return [
             {
                 "content": r["content"],

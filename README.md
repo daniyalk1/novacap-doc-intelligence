@@ -137,7 +137,7 @@ Frontend available at `http://localhost:5173`
 
 ## Roadmap
 
-- [ ] Vector search with embeddings (semantic similarity)
+- [x] Vector search with embeddings (semantic similarity)
 - [ ] Azure APIM gateway with rate limiting
 - [ ] Role-based access control per department
 - [ ] Azure Monitor query logging and audit trail
