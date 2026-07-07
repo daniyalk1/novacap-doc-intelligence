@@ -6,7 +6,8 @@ An enterprise RAG (Retrieval-Augmented Generation) platform built for NovaCap Ba
 
 ## Live Demo
 - **Frontend:** https://blue-cliff-03780ed0f.7.azurestaticapps.net
-- **API:** https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io
+- **API (Direct):** https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io
+- **API (Gateway):** https://novacap-apim.azure-api.net/novacap
 - **Swagger Docs:** https://novacap-backend.bravebeach-bb6dfe67.eastus.azurecontainerapps.io/docs
 
 ## Screenshots
@@ -169,7 +170,7 @@ docker run -p 8000:8000 --env-file .env novacap-backend
 - [x] Docker containerization
 - [x] Deploy to Azure Container Apps
 - [x] Deploy frontend to Azure Static Web Apps
-- [ ] Azure APIM gateway with rate limiting
+- [x] Azure APIM gateway with rate limiting
 - [ ] Role-based access control per department
 - [ ] Azure Monitor query logging and audit trail
 - [ ] Support for Word documents (.docx)
