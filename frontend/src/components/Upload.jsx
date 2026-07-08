@@ -48,11 +48,11 @@ function Upload() {
         marginBottom: '16px'
       }}>
         <p style={{ color: '#888', marginBottom: '16px', fontSize: '14px' }}>
-          Supports PDF and TXT files
+          Supports PDF, TXT and DOCX files
         </p>
         <input
           type="file"
-          accept=".pdf,.txt"
+          accept=".pdf,.txt,.docx"
           onChange={e => setFile(e.target.files[0])}
           style={{ display: 'none' }}
           id="file-input"

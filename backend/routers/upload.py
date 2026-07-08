@@ -5,6 +5,8 @@ from services.llm_service import LLMService
 from pypdf import PdfReader
 import io
 import uuid
+import docx
+
 
 router = APIRouter()
 blob_service = BlobService()
@@ -28,8 +30,11 @@ def extract_text(file_bytes: bytes, filename: str) -> str:
         return " ".join([page.extract_text() for page in reader.pages if page.extract_text()])
     elif filename.endswith(".txt"):
         return file_bytes.decode("utf-8")
+    elif filename.endswith(".docx"):
+        doc = docx.Document(io.BytesIO(file_bytes))
+        return " ".join([para.text for para in doc.paragraphs if para.text])
     else:
-        raise HTTPException(status_code=400, detail="Only PDF and TXT files are supported")
+        raise HTTPException(status_code=400, detail="Only PDF, TXT and DOCX files are supported")
 
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...)):
